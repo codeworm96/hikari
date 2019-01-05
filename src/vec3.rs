@@ -45,6 +45,10 @@ impl Vec3 {
     }
 }
 
+pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
+    a.e[0] * b.e[0] + a.e[1] * b.e[1] + a.e[2] * b.e[2]
+}
+
 impl std::ops::Add<Vec3> for Vec3 {
     type Output = Vec3;
 
@@ -54,6 +58,20 @@ impl std::ops::Add<Vec3> for Vec3 {
                 self.e[0] + rhs.e[0],
                 self.e[1] + rhs.e[1],
                 self.e[2] + rhs.e[2],
+            ],
+        }
+    }
+}
+
+impl std::ops::Sub<Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            e: [
+                self.e[0] - rhs.e[0],
+                self.e[1] - rhs.e[1],
+                self.e[2] - rhs.e[2],
             ],
         }
     }

@@ -3,15 +3,28 @@ use image::{ImageBuffer, Rgb};
 mod ray;
 mod vec3;
 use crate::ray::Ray;
-use crate::vec3::Vec3;
+use crate::vec3::{dot, Vec3};
 
 const W: u32 = 200;
 const H: u32 = 100;
 
+fn hit_sphere(center: &Vec3, radius: f64, r: &Ray) -> bool {
+    let oc = *r.origin() - *center;
+    let a = dot(r.direction(), r.direction());
+    let b = 2.0 * dot(&oc, r.direction());
+    let c = dot(&oc, &oc) - radius * radius;
+    let d = b * b - 4.0 * a * c;
+    d > 0.0
+}
+
 fn color(r: &Ray) -> Vec3 {
-    let unit_direction = r.direction().unit();
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, r) {
+        Vec3::new(1.0, 0.0, 0.0)
+    } else {
+        let unit_direction = r.direction().unit();
+        let t = 0.5 * (unit_direction.y() + 1.0);
+        Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+    }
 }
 
 fn main() {
