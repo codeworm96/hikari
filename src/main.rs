@@ -28,7 +28,7 @@ fn random_in_unit_sphere(rng: &mut ThreadRng) -> Vec3 {
 }
 
 fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng) -> Vec3 {
-    if let Some(rec) = world.hit(r, 0.0, std::f64::MAX) {
+    if let Some(rec) = world.hit(r, 0.001, std::f64::MAX) {
         let target = rec.p + rec.normal + random_in_unit_sphere(rng);
         color(&Ray::new(rec.p, target - rec.p), world, rng) * 0.5
     } else {
@@ -56,6 +56,7 @@ fn main() {
                 col = col + color(&r, &world, &mut rng)
             }
             col = col * (1.0 / N as f64);
+            col = Vec3::new(col.r().sqrt(), col.g().sqrt(), col.b().sqrt());
             let ir = (col.r() * 255.99) as u8;
             let ig = (col.g() * 255.99) as u8;
             let ib = (col.b() * 255.99) as u8;
