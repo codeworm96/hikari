@@ -6,6 +6,7 @@ mod hitable;
 mod hitable_list;
 mod lambertian;
 mod material;
+mod metal;
 mod ray;
 mod sphere;
 mod util;
@@ -14,6 +15,7 @@ use crate::camera::Camera;
 use crate::hitable::{HitRecord, Hitable};
 use crate::hitable_list::HitableList;
 use crate::lambertian::Lambertian;
+use crate::metal::Metal;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::{dot, Vec3};
@@ -52,6 +54,16 @@ fn main() {
             Vec3::new(0.0, -100.5, -1.0),
             100.0,
             Box::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0))),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(1.0, 0.0, -1.0),
+            0.5,
+            Box::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0)),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(-1.0, 0.0, -1.0),
+            0.5,
+            Box::new(Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3)),
         )),
     ]);
     let cam = Camera::new();
