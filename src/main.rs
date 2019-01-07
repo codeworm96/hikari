@@ -2,6 +2,7 @@ use image::{ImageBuffer, Rgb};
 use rand::prelude::*;
 
 mod camera;
+mod dielectric;
 mod hitable;
 mod hitable_list;
 mod lambertian;
@@ -12,6 +13,7 @@ mod sphere;
 mod util;
 mod vec3;
 use crate::camera::Camera;
+use crate::dielectric::Dielectric;
 use crate::hitable::{HitRecord, Hitable};
 use crate::hitable_list::HitableList;
 use crate::lambertian::Lambertian;
@@ -48,7 +50,7 @@ fn main() {
         Box::new(Sphere::new(
             Vec3::new(0.0, 0.0, -1.0),
             0.5,
-            Box::new(Lambertian::new(Vec3::new(0.8, 0.3, 0.3))),
+            Box::new(Lambertian::new(Vec3::new(0.1, 0.2, 0.5))),
         )),
         Box::new(Sphere::new(
             Vec3::new(0.0, -100.5, -1.0),
@@ -58,12 +60,17 @@ fn main() {
         Box::new(Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
-            Box::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0)),
+            Box::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0)),
         )),
         Box::new(Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
             0.5,
-            Box::new(Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3)),
+            Box::new(Dielectric::new(1.5)),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(-1.0, 0.0, -1.0),
+            -0.45,
+            Box::new(Dielectric::new(1.5)),
         )),
     ]);
     let cam = Camera::new();
