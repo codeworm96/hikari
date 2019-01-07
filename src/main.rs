@@ -1,4 +1,5 @@
 use image::{ImageBuffer, Rgb};
+use rand::prelude::*;
 
 mod camera;
 mod hitable;
@@ -15,6 +16,7 @@ use crate::vec3::{dot, Vec3};
 
 const W: u32 = 200;
 const H: u32 = 100;
+const N: u32 = 100;
 
 fn color(r: &Ray, world: &dyn Hitable) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.0, std::f64::MAX) {
@@ -37,12 +39,17 @@ fn main() {
         Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)),
     ]);
     let cam = Camera::new();
+    let mut rng = rand::thread_rng();
     for x in 0..W {
         for y in 0..H {
-            let u = x as f64 / W as f64;
-            let v = 1.0 - y as f64 / H as f64;
-            let r = cam.get_ray(u, v);
-            let col = color(&r, &world);
+            let mut col = Vec3::zero();
+            for _ in 0..N {
+                let u = (x as f64 + rng.gen::<f64>()) / W as f64;
+                let v = 1.0 - (y as f64 + rng.gen::<f64>()) / H as f64;
+                let r = cam.get_ray(u, v);
+                col = col + color(&r, &world)
+            }
+            col = col * (1.0 / N as f64);
             let ir = (col.r() * 255.99) as u8;
             let ig = (col.g() * 255.99) as u8;
             let ib = (col.b() * 255.99) as u8;
