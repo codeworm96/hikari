@@ -77,6 +77,20 @@ impl std::ops::Sub<Vec3> for Vec3 {
     }
 }
 
+impl std::ops::Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            e: [
+                self.e[0] * rhs.e[0],
+                self.e[1] * rhs.e[1],
+                self.e[2] * rhs.e[2],
+            ],
+        }
+    }
+}
+
 impl std::ops::Mul<f64> for Vec3 {
     type Output = Vec3;
 
