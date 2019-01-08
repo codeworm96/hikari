@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use image::{ImageBuffer, Rgb};
 use rand::prelude::*;
 
@@ -73,7 +75,13 @@ fn main() {
             Box::new(Dielectric::new(1.5)),
         )),
     ]);
-    let cam = Camera::new();
+    let cam = Camera::new(
+        Vec3::new(-2.0, 2.0, 1.0),
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        90.0,
+        W as f64 / H as f64,
+    );
     let mut rng = rand::thread_rng();
     for x in 0..W {
         for y in 0..H {
