@@ -75,12 +75,16 @@ fn main() {
             Box::new(Dielectric::new(1.5)),
         )),
     ]);
+    let lookfrom = Vec3::new(3.0, 3.0, 2.0);
+    let lookat = Vec3::new(0.0, 0.0, -1.0);
     let cam = Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
-        Vec3::new(0.0, 0.0, -1.0),
+        lookfrom,
+        lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         W as f64 / H as f64,
+        2.0,
+        (lookfrom - lookat).len(),
     );
     let mut rng = rand::thread_rng();
     for x in 0..W {
@@ -89,7 +93,7 @@ fn main() {
             for _ in 0..N {
                 let u = (x as f64 + rng.gen::<f64>()) / W as f64;
                 let v = 1.0 - (y as f64 + rng.gen::<f64>()) / H as f64;
-                let r = cam.get_ray(u, v);
+                let r = cam.get_ray(u, v, &mut rng);
                 col = col + color(&r, &world, &mut rng, 0)
             }
             col = col * (1.0 / N as f64);
