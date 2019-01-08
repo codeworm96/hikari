@@ -24,8 +24,8 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::{dot, Vec3};
 
-const W: u32 = 200;
-const H: u32 = 100;
+const W: u32 = 800;
+const H: u32 = 600;
 const N: u32 = 100;
 
 fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 {
@@ -46,47 +46,86 @@ fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 
     }
 }
 
+fn random_scene(rng: &mut ThreadRng) -> HitableList {
+    let mut list: Vec<Box<dyn Hitable>> = Vec::new();
+    list.push(Box::new(Sphere::new(
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Box::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))),
+    )));
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat: f64 = rng.gen();
+            let center = Vec3::new(
+                a as f64 + 0.9 * rng.gen::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rng.gen::<f64>(),
+            );
+            if (center - Vec3::new(4.0, 0.2, 0.0)).len() > 0.9 {
+                list.push(Box::new(Sphere::new(
+                    center,
+                    0.2,
+                    Box::new(Lambertian::new(Vec3::new(
+                        rng.gen::<f64>() * rng.gen::<f64>(),
+                        rng.gen::<f64>() * rng.gen::<f64>(),
+                        rng.gen::<f64>() * rng.gen::<f64>(),
+                    ))),
+                )));
+            } else if choose_mat < 0.95 {
+                list.push(Box::new(Sphere::new(
+                    center,
+                    0.2,
+                    Box::new(Metal::new(
+                        Vec3::new(
+                            0.5 * (1.0 + rng.gen::<f64>()),
+                            0.5 * (1.0 + rng.gen::<f64>()),
+                            0.5 * (1.0 + rng.gen::<f64>()),
+                        ),
+                        0.5 * rng.gen::<f64>(),
+                    )),
+                )));
+            } else {
+                list.push(Box::new(Sphere::new(
+                    center,
+                    0.2,
+                    Box::new(Dielectric::new(1.5)),
+                )));
+            }
+        }
+    }
+    list.push(Box::new(Sphere::new(
+        Vec3::new(0.0, 1.0, 0.0),
+        1.0,
+        Box::new(Dielectric::new(1.5)),
+    )));
+    list.push(Box::new(Sphere::new(
+        Vec3::new(-4.0, 1.0, 0.0),
+        1.0,
+        Box::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1))),
+    )));
+    list.push(Box::new(Sphere::new(
+        Vec3::new(4.0, 1.0, 0.0),
+        1.0,
+        Box::new(Metal::new(Vec3::new(0.6, 0.7, 0.5), 0.0)),
+    )));
+    HitableList::new(list.into())
+}
+
 fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
-    let world = HitableList::new(vec![
-        Box::new(Sphere::new(
-            Vec3::new(0.0, 0.0, -1.0),
-            0.5,
-            Box::new(Lambertian::new(Vec3::new(0.1, 0.2, 0.5))),
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(0.0, -100.5, -1.0),
-            100.0,
-            Box::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0))),
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(1.0, 0.0, -1.0),
-            0.5,
-            Box::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0)),
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            0.5,
-            Box::new(Dielectric::new(1.5)),
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            -0.45,
-            Box::new(Dielectric::new(1.5)),
-        )),
-    ]);
-    let lookfrom = Vec3::new(3.0, 3.0, 2.0);
-    let lookat = Vec3::new(0.0, 0.0, -1.0);
+    let mut rng = rand::thread_rng();
+    let world = random_scene(&mut rng);
+    let lookfrom = Vec3::new(5.5, 2.5, 2.0);
+    let lookat = Vec3::new(0.0, 1.0, 0.0);
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        20.0,
+        90.0,
         W as f64 / H as f64,
-        2.0,
+        0.1,
         (lookfrom - lookat).len(),
     );
-    let mut rng = rand::thread_rng();
     for x in 0..W {
         for y in 0..H {
             let mut col = Vec3::zero();
