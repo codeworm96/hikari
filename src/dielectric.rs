@@ -3,7 +3,6 @@ use rand::prelude::*;
 use crate::hitable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::util::random_in_unit_sphere;
 use crate::vec3::{dot, Vec3};
 
 pub struct Dielectric {
@@ -55,13 +54,22 @@ impl Material for Dielectric {
         if let Some(refracted) = refract(r.direction(), &outward_normal, ni_over_nt) {
             if rng.gen::<f64>() < schlick(cosine, self.ref_idx) {
                 let reflected = reflect(r.direction(), &rec.normal);
-                Some((Vec3::new(1.0, 1.0, 1.0), Ray::new(rec.p, reflected)))
+                Some((
+                    Vec3::new(1.0, 1.0, 1.0),
+                    Ray::new(rec.p, reflected, r.time()),
+                ))
             } else {
-                Some((Vec3::new(1.0, 1.0, 1.0), Ray::new(rec.p, refracted)))
+                Some((
+                    Vec3::new(1.0, 1.0, 1.0),
+                    Ray::new(rec.p, refracted, r.time()),
+                ))
             }
         } else {
             let reflected = reflect(r.direction(), &rec.normal);
-            Some((Vec3::new(1.0, 1.0, 1.0), Ray::new(rec.p, reflected)))
+            Some((
+                Vec3::new(1.0, 1.0, 1.0),
+                Ray::new(rec.p, reflected, r.time()),
+            ))
         }
     }
 }

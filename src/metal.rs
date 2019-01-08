@@ -26,7 +26,7 @@ impl Material for Metal {
         let reflected = reflect(&r.direction().unit(), &rec.normal);
         let direction = reflected + random_in_unit_sphere(rng) * self.fuzz;
         if dot(&direction, &rec.normal) > 0.0 {
-            Some((self.albedo, Ray::new(rec.p, direction)))
+            Some((self.albedo, Ray::new(rec.p, direction, r.time())))
         } else {
             None
         }

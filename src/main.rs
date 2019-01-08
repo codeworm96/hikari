@@ -1,5 +1,3 @@
-use std::f64::consts::PI;
-
 use image::{ImageBuffer, Rgb};
 use rand::prelude::*;
 
@@ -10,19 +8,21 @@ mod hitable_list;
 mod lambertian;
 mod material;
 mod metal;
+mod moving_sphere;
 mod ray;
 mod sphere;
 mod util;
 mod vec3;
 use crate::camera::Camera;
 use crate::dielectric::Dielectric;
-use crate::hitable::{HitRecord, Hitable};
+use crate::hitable::Hitable;
 use crate::hitable_list::HitableList;
 use crate::lambertian::Lambertian;
 use crate::metal::Metal;
+use crate::moving_sphere::MovingSphere;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::vec3::{dot, Vec3};
+use crate::vec3::Vec3;
 
 const W: u32 = 800;
 const H: u32 = 600;
@@ -53,8 +53,8 @@ fn random_scene(rng: &mut ThreadRng) -> HitableList {
         1000.0,
         Box::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))),
     )));
-    for a in -11..11 {
-        for b in -11..11 {
+    for a in -10..10 {
+        for b in -10..10 {
             let choose_mat: f64 = rng.gen();
             let center = Vec3::new(
                 a as f64 + 0.9 * rng.gen::<f64>(),
@@ -62,8 +62,11 @@ fn random_scene(rng: &mut ThreadRng) -> HitableList {
                 b as f64 + 0.9 * rng.gen::<f64>(),
             );
             if (center - Vec3::new(4.0, 0.2, 0.0)).len() > 0.9 {
-                list.push(Box::new(Sphere::new(
+                list.push(Box::new(MovingSphere::new(
                     center,
+                    center + Vec3::new(0.0, 0.5 * rng.gen::<f64>(), 0.0),
+                    0.0,
+                    1.0,
                     0.2,
                     Box::new(Lambertian::new(Vec3::new(
                         rng.gen::<f64>() * rng.gen::<f64>(),
@@ -115,16 +118,18 @@ fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
     let mut rng = rand::thread_rng();
     let world = random_scene(&mut rng);
-    let lookfrom = Vec3::new(5.5, 2.5, 2.0);
-    let lookat = Vec3::new(0.0, 1.0, 0.0);
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::new(0.0, 0.0, 0.0);
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         W as f64 / H as f64,
-        0.1,
-        (lookfrom - lookat).len(),
+        0.0,
+        10.0,
+        0.0,
+        1.0,
     );
     for x in 0..W {
         for y in 0..H {
