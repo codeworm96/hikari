@@ -126,3 +126,12 @@ impl std::ops::Mul<f64> for Vec3 {
         }
     }
 }
+
+impl std::iter::Sum for Vec3 {
+    fn sum<I>(iter: I) -> Vec3
+    where
+        I: Iterator<Item = Vec3>,
+    {
+        iter.fold(Vec3::zero(), std::ops::Add::add)
+    }
+}

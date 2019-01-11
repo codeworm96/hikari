@@ -5,17 +5,17 @@ use crate::hitable::{HitRecord, Hitable};
 use crate::ray::Ray;
 
 pub struct BvhNode {
-    left: Box<dyn Hitable>,
-    right: Box<dyn Hitable>,
+    left: Box<dyn Hitable + Sync>,
+    right: Box<dyn Hitable + Sync>,
     aabb: AABB,
 }
 
 pub fn build(
-    mut list: Vec<Box<dyn Hitable>>,
+    mut list: Vec<Box<dyn Hitable + Sync>>,
     time0: f64,
     time1: f64,
     rng: &mut ThreadRng,
-) -> Box<dyn Hitable> {
+) -> Box<dyn Hitable + Sync> {
     let len = list.len();
     if len == 0 {
         panic!("no hitables");

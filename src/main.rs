@@ -1,5 +1,6 @@
 use image::{ImageBuffer, Rgb};
 use rand::prelude::*;
+use rayon::prelude::*;
 
 mod aabb;
 mod bvh_node;
@@ -48,8 +49,8 @@ fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 
     }
 }
 
-fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable> {
-    let mut list: Vec<Box<dyn Hitable>> = Vec::new();
+fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
+    let mut list: Vec<Box<dyn Hitable + Sync>> = Vec::new();
     list.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -135,13 +136,21 @@ fn main() {
     );
     for x in 0..W {
         for y in 0..H {
-            let mut col = Vec3::zero();
-            for _ in 0..N {
-                let u = (x as f64 + rng.gen::<f64>()) / W as f64;
-                let v = 1.0 - (y as f64 + rng.gen::<f64>()) / H as f64;
-                let r = cam.get_ray(u, v, &mut rng);
-                col = col + color(&r, &*world, &mut rng, 0)
-            }
+            let mut col: Vec3 = (0..N)
+                .map(|_| {
+                    (
+                        (x as f64 + rng.gen::<f64>()) / W as f64,
+                        1.0 - (y as f64 + rng.gen::<f64>()) / H as f64,
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into_par_iter()
+                .map(|(u, v)| {
+                    let mut rng = rand::thread_rng();
+                    let r = cam.get_ray(u, v, &mut rng);
+                    color(&r, &*world, &mut rng, 0)
+                })
+                .sum();
             col = col * (1.0 / N as f64);
             col = Vec3::new(col.r().sqrt(), col.g().sqrt(), col.b().sqrt());
             let ir = (col.r() * 255.99) as u8;

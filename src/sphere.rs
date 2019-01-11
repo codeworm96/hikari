@@ -7,11 +7,11 @@ use crate::vec3::{dot, Vec3};
 pub struct Sphere {
     center: Vec3,
     radius: f64,
-    mat: Box<dyn Material>,
+    mat: Box<dyn Material + Sync>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, mat: Box<dyn Material>) -> Sphere {
+    pub fn new(center: Vec3, radius: f64, mat: Box<dyn Material + Sync>) -> Sphere {
         Sphere {
             center,
             radius,
