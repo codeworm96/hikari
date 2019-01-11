@@ -5,6 +5,8 @@ use rayon::prelude::*;
 mod aabb;
 mod bvh_node;
 mod camera;
+mod checker_texture;
+mod constant_texture;
 mod dielectric;
 mod hitable;
 mod hitable_list;
@@ -14,9 +16,12 @@ mod metal;
 mod moving_sphere;
 mod ray;
 mod sphere;
+mod texture;
 mod util;
 mod vec3;
 use crate::camera::Camera;
+use crate::checker_texture::CheckerTexture;
+use crate::constant_texture::ConstantTexture;
 use crate::dielectric::Dielectric;
 use crate::hitable::Hitable;
 use crate::hitable_list::HitableList;
@@ -54,7 +59,10 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
     list.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Box::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5))),
+        Box::new(Lambertian::new(Box::new(CheckerTexture::new(
+            Box::new(ConstantTexture::new(Vec3::new(0.2, 0.3, 0.1))),
+            Box::new(ConstantTexture::new(Vec3::new(0.9, 0.9, 0.9))),
+        )))),
     )));
     for a in -10..10 {
         for b in -10..10 {
@@ -71,11 +79,11 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
                     0.0,
                     1.0,
                     0.2,
-                    Box::new(Lambertian::new(Vec3::new(
+                    Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
                         rng.gen::<f64>() * rng.gen::<f64>(),
                         rng.gen::<f64>() * rng.gen::<f64>(),
                         rng.gen::<f64>() * rng.gen::<f64>(),
-                    ))),
+                    ))))),
                 )));
             } else if choose_mat < 0.95 {
                 list.push(Box::new(Sphere::new(
@@ -107,7 +115,9 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
     list.push(Box::new(Sphere::new(
         Vec3::new(-4.0, 1.0, 0.0),
         1.0,
-        Box::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1))),
+        Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+            0.4, 0.2, 0.1,
+        ))))),
     )));
     list.push(Box::new(Sphere::new(
         Vec3::new(4.0, 1.0, 0.0),

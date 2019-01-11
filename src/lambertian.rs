@@ -3,15 +3,16 @@ use rand::prelude::*;
 use crate::hitable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::Texture;
 use crate::util::random_in_unit_sphere;
 use crate::vec3::Vec3;
 
 pub struct Lambertian {
-    albedo: Vec3,
+    albedo: Box<dyn Texture + Sync>,
 }
 
 impl Lambertian {
-    pub fn new(a: Vec3) -> Lambertian {
+    pub fn new(a: Box<dyn Texture + Sync>) -> Lambertian {
         Lambertian { albedo: a }
     }
 }
@@ -19,6 +20,9 @@ impl Lambertian {
 impl Material for Lambertian {
     fn scatter(&self, r: &Ray, rec: &HitRecord, rng: &mut ThreadRng) -> Option<(Vec3, Ray)> {
         let target = rec.p + rec.normal + random_in_unit_sphere(rng);
-        Some((self.albedo, Ray::new(rec.p, target - rec.p, r.time())))
+        Some((
+            self.albedo.value(0.0, 0.0, &rec.p),
+            Ray::new(rec.p, target - rec.p, r.time()),
+        ))
     }
 }
