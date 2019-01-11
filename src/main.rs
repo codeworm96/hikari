@@ -1,6 +1,8 @@
 use image::{ImageBuffer, Rgb};
 use rand::prelude::*;
 
+mod aabb;
+mod bvh_node;
 mod camera;
 mod dielectric;
 mod hitable;
@@ -24,8 +26,8 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
-const W: u32 = 800;
-const H: u32 = 600;
+const W: u32 = 400;
+const H: u32 = 300;
 const N: u32 = 100;
 
 fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 {
@@ -46,7 +48,7 @@ fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 
     }
 }
 
-fn random_scene(rng: &mut ThreadRng) -> HitableList {
+fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable> {
     let mut list: Vec<Box<dyn Hitable>> = Vec::new();
     list.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
@@ -111,7 +113,7 @@ fn random_scene(rng: &mut ThreadRng) -> HitableList {
         1.0,
         Box::new(Metal::new(Vec3::new(0.6, 0.7, 0.5), 0.0)),
     )));
-    HitableList::new(list.into())
+    bvh_node::build(list, 0.0, 1.0, rng)
 }
 
 fn main() {
@@ -138,7 +140,7 @@ fn main() {
                 let u = (x as f64 + rng.gen::<f64>()) / W as f64;
                 let v = 1.0 - (y as f64 + rng.gen::<f64>()) / H as f64;
                 let r = cam.get_ray(u, v, &mut rng);
-                col = col + color(&r, &world, &mut rng, 0)
+                col = col + color(&r, &*world, &mut rng, 0)
             }
             col = col * (1.0 / N as f64);
             col = Vec3::new(col.r().sqrt(), col.g().sqrt(), col.b().sqrt());

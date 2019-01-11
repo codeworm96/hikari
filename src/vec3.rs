@@ -57,6 +57,14 @@ pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     )
 }
 
+impl std::ops::Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, ix: usize) -> &f64 {
+        &self.e[ix]
+    }
+}
+
 impl std::ops::Neg for Vec3 {
     type Output = Vec3;
 

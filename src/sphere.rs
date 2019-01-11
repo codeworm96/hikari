@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::hitable::{HitRecord, Hitable};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -53,5 +54,12 @@ impl Hitable for Sphere {
         } else {
             None
         }
+    }
+
+    fn bounding_box(&self, _t0: f64, _t1: f64) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center + Vec3::new(self.radius, self.radius, self.radius),
+        })
     }
 }

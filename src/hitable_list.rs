@@ -1,3 +1,4 @@
+use crate::aabb::{surrounding_box, AABB};
 use crate::hitable::{HitRecord, Hitable};
 use crate::ray::Ray;
 
@@ -19,6 +20,21 @@ impl Hitable for HitableList {
             if let Some(rec) = h.hit(r, t_min, closest_so_far) {
                 closest_so_far = rec.t;
                 res = Some(rec);
+            }
+        }
+        res
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        let mut res = None;
+        for h in &self.list {
+            if let Some(r) = h.bounding_box(t0, t1) {
+                res = match res {
+                    Some(res) => Some(surrounding_box(&res, &r)),
+                    None => Some(r),
+                }
+            } else {
+                return None;
             }
         }
         res
