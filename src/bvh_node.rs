@@ -4,7 +4,7 @@ use crate::aabb::{surrounding_box, AABB};
 use crate::hitable::{HitRecord, Hitable};
 use crate::ray::Ray;
 
-pub struct BVHNode {
+pub struct BvhNode {
     left: Box<dyn Hitable>,
     right: Box<dyn Hitable>,
     aabb: AABB,
@@ -36,11 +36,11 @@ pub fn build(
             &left.bounding_box(time0, time1).unwrap(),
             &right.bounding_box(time0, time1).unwrap(),
         );
-        Box::new(BVHNode { left, right, aabb })
+        Box::new(BvhNode { left, right, aabb })
     }
 }
 
-impl Hitable for BVHNode {
+impl Hitable for BvhNode {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         if self.aabb.hit(r, t_min, t_max) {
             match (
