@@ -3,11 +3,11 @@ use crate::hitable::{HitRecord, Hitable};
 use crate::ray::Ray;
 
 pub struct HitableList {
-    list: Vec<Box<dyn Hitable>>,
+    list: Vec<Box<dyn Hitable + Sync>>,
 }
 
 impl HitableList {
-    pub fn new(list: Vec<Box<dyn Hitable>>) -> HitableList {
+    pub fn new(list: Vec<Box<dyn Hitable + Sync>>) -> HitableList {
         HitableList { list }
     }
 }

@@ -54,6 +54,27 @@ fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 
     }
 }
 
+fn two_spheres() -> Box<dyn Hitable + Sync> {
+    Box::new(HitableList::new(vec![
+        Box::new(Sphere::new(
+            Vec3::new(0.0, -10.0, 0.0),
+            10.0,
+            Box::new(Lambertian::new(Box::new(CheckerTexture::new(
+                Box::new(ConstantTexture::new(Vec3::new(0.2, 0.3, 0.1))),
+                Box::new(ConstantTexture::new(Vec3::new(0.9, 0.9, 0.9))),
+            )))),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 10.0, 0.0),
+            10.0,
+            Box::new(Lambertian::new(Box::new(CheckerTexture::new(
+                Box::new(ConstantTexture::new(Vec3::new(0.2, 0.3, 0.1))),
+                Box::new(ConstantTexture::new(Vec3::new(0.9, 0.9, 0.9))),
+            )))),
+        )),
+    ]))
+}
+
 fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
     let mut list: Vec<Box<dyn Hitable + Sync>> = Vec::new();
     list.push(Box::new(Sphere::new(
@@ -130,7 +151,7 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
 fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
     let mut rng = rand::thread_rng();
-    let world = random_scene(&mut rng);
+    let world = two_spheres();
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
     let cam = Camera::new(
