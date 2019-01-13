@@ -5,6 +5,8 @@ use crate::vec3::Vec3;
 
 pub struct HitRecord<'a> {
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub p: Vec3,
     pub normal: Vec3,
     pub mat: &'a dyn Material,

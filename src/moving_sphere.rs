@@ -2,6 +2,7 @@ use crate::aabb::{surrounding_box, AABB};
 use crate::hitable::{HitRecord, Hitable};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::util::get_sphere_uv;
 use crate::vec3::{dot, Vec3};
 
 pub struct MovingSphere {
@@ -49,20 +50,28 @@ impl Hitable for MovingSphere {
             let t = (-b - d.sqrt()) / a;
             if t < t_max && t > t_min {
                 let p = r.point_at_parameter(t);
+                let normal = (p - self.center(r.time())) * (1.0 / self.radius);
+                let (u, v) = get_sphere_uv(&normal);
                 Some(HitRecord {
                     t,
+                    u,
+                    v,
                     p,
-                    normal: (p - self.center(r.time())) * (1.0 / self.radius),
+                    normal,
                     mat: &*self.mat,
                 })
             } else {
                 let t = (-b + d.sqrt()) / a;
                 if t < t_max && t > t_min {
                     let p = r.point_at_parameter(t);
+                    let normal = (p - self.center(r.time())) * (1.0 / self.radius);
+                    let (u, v) = get_sphere_uv(&normal);
                     Some(HitRecord {
                         t,
+                        u,
+                        v,
                         p,
-                        normal: (p - self.center(r.time())) * (1.0 / self.radius),
+                        normal,
                         mat: &*self.mat,
                     })
                 } else {

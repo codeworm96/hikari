@@ -10,6 +10,7 @@ mod constant_texture;
 mod dielectric;
 mod hitable;
 mod hitable_list;
+mod image_texture;
 mod lambertian;
 mod material;
 mod metal;
@@ -27,6 +28,7 @@ use crate::constant_texture::ConstantTexture;
 use crate::dielectric::Dielectric;
 use crate::hitable::Hitable;
 use crate::hitable_list::HitableList;
+use crate::image_texture::ImageTexture;
 use crate::lambertian::Lambertian;
 use crate::metal::Metal;
 use crate::moving_sphere::MovingSphere;
@@ -91,6 +93,16 @@ fn two_perlin_spheres() -> Box<dyn Hitable + Sync> {
             Box::new(Lambertian::new(Box::new(NoiseTexture::new(4.0)))),
         )),
     ]))
+}
+
+fn earth() -> Box<dyn Hitable + Sync> {
+    Box::new(Sphere::new(
+        Vec3::new(0.0, 0.0, 0.0),
+        10.0,
+        Box::new(Lambertian::new(Box::new(ImageTexture::new(
+            image::open("earth.jpg").unwrap().to_rgb(),
+        )))),
+    ))
 }
 
 fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
@@ -169,14 +181,14 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
 fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
     let mut rng = rand::thread_rng();
-    let world = two_perlin_spheres();
+    let world = earth();
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        20.0,
+        100.0,
         W as f64 / H as f64,
         0.0,
         10.0,
