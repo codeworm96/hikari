@@ -14,6 +14,8 @@ mod lambertian;
 mod material;
 mod metal;
 mod moving_sphere;
+mod noise_texture;
+mod perlin;
 mod ray;
 mod sphere;
 mod texture;
@@ -28,6 +30,7 @@ use crate::hitable_list::HitableList;
 use crate::lambertian::Lambertian;
 use crate::metal::Metal;
 use crate::moving_sphere::MovingSphere;
+use crate::noise_texture::NoiseTexture;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
@@ -71,6 +74,21 @@ fn two_spheres() -> Box<dyn Hitable + Sync> {
                 Box::new(ConstantTexture::new(Vec3::new(0.2, 0.3, 0.1))),
                 Box::new(ConstantTexture::new(Vec3::new(0.9, 0.9, 0.9))),
             )))),
+        )),
+    ]))
+}
+
+fn two_perlin_spheres() -> Box<dyn Hitable + Sync> {
+    Box::new(HitableList::new(vec![
+        Box::new(Sphere::new(
+            Vec3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            Box::new(Lambertian::new(Box::new(NoiseTexture::new(4.0)))),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 2.0, 0.0),
+            2.0,
+            Box::new(Lambertian::new(Box::new(NoiseTexture::new(4.0)))),
         )),
     ]))
 }
@@ -151,7 +169,7 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
 fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
     let mut rng = rand::thread_rng();
-    let world = two_spheres();
+    let world = two_perlin_spheres();
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
     let cam = Camera::new(
