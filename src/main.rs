@@ -8,6 +8,8 @@ mod camera;
 mod checker_texture;
 mod constant_texture;
 mod dielectric;
+mod diffuse_light;
+mod flip_normals;
 mod hitable;
 mod hitable_list;
 mod image_texture;
@@ -22,10 +24,15 @@ mod sphere;
 mod texture;
 mod util;
 mod vec3;
+mod xy_rect;
+mod xz_rect;
+mod yz_rect;
 use crate::camera::Camera;
 use crate::checker_texture::CheckerTexture;
 use crate::constant_texture::ConstantTexture;
 use crate::dielectric::Dielectric;
+use crate::diffuse_light::DiffuseLight;
+use crate::flip_normals::FlipNormals;
 use crate::hitable::Hitable;
 use crate::hitable_list::HitableList;
 use crate::image_texture::ImageTexture;
@@ -36,26 +43,28 @@ use crate::noise_texture::NoiseTexture;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
+use crate::xy_rect::XyRect;
+use crate::xz_rect::XzRect;
+use crate::yz_rect::YzRect;
 
-const W: u32 = 400;
+const W: u32 = 300;
 const H: u32 = 300;
-const N: u32 = 100;
+const N: u32 = 10000;
 
 fn color(r: &Ray, world: &dyn Hitable, rng: &mut ThreadRng, depth: u32) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.001, std::f64::MAX) {
+        let emitted = rec.mat.emitted(rec.u, rec.v, &rec.p);
         if depth < 50 {
             if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec, rng) {
-                attenuation * color(&scattered, world, rng, depth + 1)
+                emitted + attenuation * color(&scattered, world, rng, depth + 1)
             } else {
-                Vec3::zero()
+                emitted
             }
         } else {
-            Vec3::zero()
+            emitted
         }
     } else {
-        let unit_direction = r.direction().unit();
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+        Vec3::zero()
     }
 }
 
@@ -178,17 +187,114 @@ fn random_scene(rng: &mut ThreadRng) -> Box<dyn Hitable + Sync> {
     bvh_node::build(list, 0.0, 1.0, rng)
 }
 
+fn simple_light() -> Box<dyn Hitable + Sync> {
+    Box::new(HitableList::new(vec![
+        Box::new(Sphere::new(
+            Vec3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            Box::new(Lambertian::new(Box::new(NoiseTexture::new(4.0)))),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 2.0, 0.0),
+            2.0,
+            Box::new(Lambertian::new(Box::new(NoiseTexture::new(4.0)))),
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 7.0, 0.0),
+            2.0,
+            Box::new(DiffuseLight::new(Box::new(ConstantTexture::new(
+                Vec3::new(4.0, 4.0, 4.0),
+            )))),
+        )),
+        Box::new(XyRect::new(
+            3.0,
+            5.0,
+            1.0,
+            3.0,
+            -2.0,
+            Box::new(DiffuseLight::new(Box::new(ConstantTexture::new(
+                Vec3::new(4.0, 4.0, 4.0),
+            )))),
+        )),
+    ]))
+}
+
+fn cornell_box() -> Box<dyn Hitable + Sync> {
+    Box::new(HitableList::new(vec![
+        Box::new(FlipNormals::new(Box::new(YzRect::new(
+            0.0,
+            555.0,
+            0.0,
+            555.0,
+            555.0,
+            Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+                0.12, 0.45, 0.15,
+            ))))),
+        )))),
+        Box::new(YzRect::new(
+            0.0,
+            555.0,
+            0.0,
+            555.0,
+            0.0,
+            Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+                0.65, 0.05, 0.05,
+            ))))),
+        )),
+        Box::new(XzRect::new(
+            213.0,
+            343.0,
+            227.0,
+            332.0,
+            554.0,
+            Box::new(DiffuseLight::new(Box::new(ConstantTexture::new(
+                Vec3::new(15.0, 15.0, 15.0),
+            )))),
+        )),
+        Box::new(FlipNormals::new(Box::new(XzRect::new(
+            0.0,
+            555.0,
+            0.0,
+            555.0,
+            555.0,
+            Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+                0.73, 0.73, 0.73,
+            ))))),
+        )))),
+        Box::new(XzRect::new(
+            0.0,
+            555.0,
+            0.0,
+            555.0,
+            0.0,
+            Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+                0.73, 0.73, 0.73,
+            ))))),
+        )),
+        Box::new(FlipNormals::new(Box::new(XyRect::new(
+            0.0,
+            555.0,
+            0.0,
+            555.0,
+            555.0,
+            Box::new(Lambertian::new(Box::new(ConstantTexture::new(Vec3::new(
+                0.73, 0.73, 0.73,
+            ))))),
+        )))),
+    ]))
+}
+
 fn main() {
     let mut img = ImageBuffer::from_pixel(W, H, Rgb([0u8, 0u8, 0u8]));
     let mut rng = rand::thread_rng();
-    let world = earth();
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let world = cornell_box();
+    let lookfrom = Vec3::new(278.0, 278.0, -800.0);
+    let lookat = Vec3::new(278.0, 278.0, 0.0);
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        100.0,
+        40.0,
         W as f64 / H as f64,
         0.0,
         10.0,
